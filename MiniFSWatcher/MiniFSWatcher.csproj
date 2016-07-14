@@ -44,7 +44,7 @@
     <Compile Include="EventReader.cs" />
     <Compile Include="Events\FileSystemEvent.cs" />
     <Compile Include="Events\RenameOrMoveEvent.cs" />
-    <Compile Include="FileSystemEventFilter.cs" />
+    <Compile Include="EventWatcher.cs" />
     <Compile Include="FilterConnector.cs" />
     <Compile Include="PathConverter.cs" />
     <Compile Include="Types\DriverVersion.cs" />

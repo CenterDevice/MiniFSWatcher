@@ -12,7 +12,7 @@ events instead. `MiniFSWatcher` will let you track file movement within one part
 
 With the `AggregateEvents` option, you'll only receive one file event when the respective file handle is closed
 and thus no more consecutive changes will occure. If multiple write operations were performed, only one "changed"
-event is triggerd. If a file is created _and_ changed (i.e. due to a copy operation), you'll only receive one 
+event is triggered. If a file is created _and_ changed (i.e. due to a copy operation), you'll only receive one 
 "created" event.
 
 ### Getting information about the process causing the change
@@ -23,7 +23,7 @@ to directly filter out all events caused by its own process ID.
 
 # Usage
 
-The following example shows how to use MiniFSWatcher to wach a directory and all subdirectories.
+The following example shows how to use MiniFSWatcher to watch a directory and all subdirectories.
 
     var eventWatcher = new EventWatcher();
     

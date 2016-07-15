@@ -6,8 +6,8 @@
     <ProjectGuid>{6AEC70E0-4191-4373-ABC3-EBAD6B1BBE50}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>minispyTest</RootNamespace>
-    <AssemblyName>minispyTest</AssemblyName>
+    <RootNamespace>CenterDevice.MiniFSWatcherTest</RootNamespace>
+    <AssemblyName>MiniFSWatcherTest</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -51,6 +51,8 @@
   </Choose>
   <ItemGroup>
     <Compile Include="BasicFileEventTest.cs" />
+    <Compile Include="EventAggregationTest.cs" />
+    <Compile Include="FileEventTest.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

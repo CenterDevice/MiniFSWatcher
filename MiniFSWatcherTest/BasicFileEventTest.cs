@@ -8,27 +8,12 @@ using System.Diagnostics;
 namespace CenterDevice.MiniFSWatcherTest
 {
     [TestClass]
-    public class BasicFileEventTest
+    public class BasicFileEventTest: FileEventTest
     {
-        private string watchDir = null;
-        private string tmpFile = null;
-
-        private EventWatcher filter = null;
-
         [TestInitialize]
         public void Setup()
         {
-            watchDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            Directory.CreateDirectory(watchDir);
-
-            tmpFile = Path.Combine(watchDir, Path.GetRandomFileName());
-            File.Create(tmpFile).Dispose();
-
-            filter = new EventWatcher();
-            filter.AggregateEvents = true;
-            filter.Connect();
-
-            filter.WatchPath(watchDir + "*");
+            Initialize();
         }
 
         [TestMethod]

@@ -120,7 +120,8 @@ Return Value:
         // Initialize global data structures.
         //
 
-		MiniFSWatcherData.ExcludeProcess = 0;
+		MiniFSWatcherData.WatchProcess = 0;
+		MiniFSWatcherData.WatchThread = 0;
         MiniFSWatcherData.LogSequenceNumber = 0;
         MiniFSWatcherData.MaxRecordsToAllocate = DEFAULT_MAX_RECORDS_TO_ALLOCATE;
         MiniFSWatcherData.RecordsAllocated = 0;
@@ -304,7 +305,8 @@ Return value
 
     FltCloseClientPort( MiniFSWatcherData.Filter, &MiniFSWatcherData.ClientPort );
 	MiniFSWatcherData.ClientPort = NULL;
-	MiniFSWatcherData.ExcludeProcess = 0;
+	MiniFSWatcherData.WatchProcess = 0;
+	MiniFSWatcherData.WatchThread = 0;
 	SpyUpdateWatchedPath(NULL);
 	DbgPrintEx(DPFLTR_IHVDRIVER_ID, 0, "Client disconnected from MiniSpy\n");
 }
@@ -576,66 +578,74 @@ break;
 				status = STATUS_SUCCESS;
 				break;
 
-			case SetExcludeProcess:
-				if (dataLength < sizeof(ULONG))
+			case SetWatchProcess:
+				if (dataLength < sizeof(LONGLONG))
 				{
 					status = STATUS_INVALID_PARAMETER;
 					break;
 				}
 
 				try {
-					if (*((ULONG*)((PCOMMAND_MESSAGE)InputBuffer)->Data) > 0) 
-					{
-						MiniFSWatcherData.ExcludeProcess = PsGetCurrentProcessId();
-						DbgPrintEx(DPFLTR_IHVDRIVER_ID, 0, "Excluding process %lu\n", MiniFSWatcherData.ExcludeProcess);
-					}
-					else
-					{
-						MiniFSWatcherData.ExcludeProcess = 0;
-						DbgPrintEx(DPFLTR_IHVDRIVER_ID, 0, "Watching all processes\n");
-					}
-
+					MiniFSWatcherData.WatchProcess = *((LONGLONG*)((PCOMMAND_MESSAGE)InputBuffer)->Data);
+					DbgPrintEx(DPFLTR_IHVDRIVER_ID, 0, "Watching process %li\n", MiniFSWatcherData.WatchProcess);
 					status = STATUS_SUCCESS;
 				} except(SpyExceptionFilter(GetExceptionInformation(), TRUE)) {
 					return GetExceptionCode();
 				}
 		
 				break;
+			case SetWatchThread:
+				if (dataLength < sizeof(LONGLONG))
+				{
+					status = STATUS_INVALID_PARAMETER;
+					break;
+				}
+
+				try {
+					MiniFSWatcherData.WatchThread = *((LONGLONG*)((PCOMMAND_MESSAGE)InputBuffer)->Data);
+					DbgPrintEx(DPFLTR_IHVDRIVER_ID, 0, "Watching thread %li\n", MiniFSWatcherData.WatchThread);
+					status = STATUS_SUCCESS;
+				} except(SpyExceptionFilter(GetExceptionInformation(), TRUE)) {
+					return GetExceptionCode();
+				}
+
+				break;
 			case SetPathFilter:
 				try {
 					if (dataLength <= sizeof(WCHAR) 
-						|| ((PCWSTR)((PCOMMAND_MESSAGE)InputBuffer)->Data)[dataLength / sizeof(WCHAR) - 1] != UNICODE_NULL) 
+|| ((PCWSTR)((PCOMMAND_MESSAGE)InputBuffer)->Data)[dataLength / sizeof(WCHAR) - 1] != UNICODE_NULL)
 					{
 						status = STATUS_INVALID_PARAMETER;
 						break;
 					}
 
-					RtlInitUnicodeString(&dataString, (PCWSTR) ((PCOMMAND_MESSAGE)InputBuffer)->Data);
-					if (SpyUpdateWatchedPath(&dataString)) 
-					{
-						DbgPrintEx(DPFLTR_IHVDRIVER_ID, 0, "Watching path %wZ\n", &MiniFSWatcherData.WatchPath);
-						status = STATUS_SUCCESS;
-					}
-					else
-					{
-						status = STATUS_OPERATION_IN_PROGRESS;
-					}
+RtlInitUnicodeString(&dataString, (PCWSTR)((PCOMMAND_MESSAGE)InputBuffer)->Data);
+if (SpyUpdateWatchedPath(&dataString))
+{
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, 0, "Watching path %wZ\n", &MiniFSWatcherData.WatchPath);
+	status = STATUS_SUCCESS;
+}
+else
+{
+	status = STATUS_OPERATION_IN_PROGRESS;
+}
 				} except(SpyExceptionFilter(GetExceptionInformation(), TRUE)) {
 					return GetExceptionCode();
 				}
-				
+
 				break;
             default:
-                status = STATUS_INVALID_PARAMETER;
-                break;
-        }
+				status = STATUS_INVALID_PARAMETER;
+				break;
+		}
 
-    } else {
+	}
+ else {
 
-        status = STATUS_INVALID_PARAMETER;
-    }
+	 status = STATUS_INVALID_PARAMETER;
+ }
 
-    return status;
+ return status;
 }
 
 
@@ -646,40 +656,40 @@ break;
 
 FLT_PREOP_CALLBACK_STATUS
 #pragma warning(suppress: 6262) // higher than usual stack usage is considered safe in this case
-SpyPreOperationCallback (
-    _Inout_ PFLT_CALLBACK_DATA Data,
-    _In_ PCFLT_RELATED_OBJECTS FltObjects,
-    _Flt_CompletionContext_Outptr_ PVOID *CompletionContext
-    )
+SpyPreOperationCallback(
+	_Inout_ PFLT_CALLBACK_DATA Data,
+	_In_ PCFLT_RELATED_OBJECTS FltObjects,
+	_Flt_CompletionContext_Outptr_ PVOID *CompletionContext
+)
 /*++
 
 Routine Description:
 
-    This routine receives ALL pre-operation callbacks for this filter.  It then
-    tries to log information about the given operation.  If we are able
-    to log information then we will call our post-operation callback  routine.
+	This routine receives ALL pre-operation callbacks for this filter.  It then
+	tries to log information about the given operation.  If we are able
+	to log information then we will call our post-operation callback  routine.
 
-    NOTE:  This routine must be NON-PAGED because it can be called on the
-           paging path.
+	NOTE:  This routine must be NON-PAGED because it can be called on the
+		   paging path.
 
 Arguments:
 
-    Data - Contains information about the given operation.
+	Data - Contains information about the given operation.
 
-    FltObjects - Contains pointers to the various objects that are pertinent
-        to this operation.
+	FltObjects - Contains pointers to the various objects that are pertinent
+		to this operation.
 
-    CompletionContext - This receives the address of our log buffer for this
-        operation.  Our completion routine then receives this buffer address.
+	CompletionContext - This receives the address of our log buffer for this
+		operation.  Our completion routine then receives this buffer address.
 
 Return Value:
 
-    Identifies how processing should continue for this operation
+	Identifies how processing should continue for this operation
 
 --*/
 {
-    FLT_PREOP_CALLBACK_STATUS returnStatus = FLT_PREOP_SUCCESS_NO_CALLBACK; //assume we are NOT going to call our completion routine
-    PRECORD_LIST recordList;
+	FLT_PREOP_CALLBACK_STATUS returnStatus = FLT_PREOP_SUCCESS_NO_CALLBACK; //assume we are NOT going to call our completion routine
+	PRECORD_LIST recordList;
 
 	NTSTATUS nameStatus = STATUS_UNSUCCESSFUL;
 	NTSTATUS targetNameStatus = STATUS_UNSUCCESSFUL;
@@ -687,12 +697,12 @@ Return Value:
 	PFLT_FILE_NAME_INFORMATION nameInfo = NULL;
 	PFLT_FILE_NAME_INFORMATION targetNameInfo = NULL;
 
-	if (MiniFSWatcherData.ClientPort == NULL || MiniFSWatcherData.WatchPath.Buffer == NULL) 
+	if (MiniFSWatcherData.ClientPort == NULL || MiniFSWatcherData.WatchPath.Buffer == NULL)
 	{
 		return FLT_PREOP_SUCCESS_NO_CALLBACK;
 	}
 
-	if (!FlagOn(Data->Flags, FLTFL_CALLBACK_DATA_IRP_OPERATION)) 
+	if (!FlagOn(Data->Flags, FLTFL_CALLBACK_DATA_IRP_OPERATION))
 	{
 		return FLT_PREOP_SUCCESS_NO_CALLBACK;
 	}
@@ -702,10 +712,9 @@ Return Value:
 		return FLT_PREOP_SUCCESS_NO_CALLBACK;
 	}
 
-	if (MiniFSWatcherData.ExcludeProcess != 0 && PsGetCurrentProcessId() == MiniFSWatcherData.ExcludeProcess)
-	{
-		return FLT_PREOP_SUCCESS_NO_CALLBACK;
-	}
+	CONTINUE_IF_MATCHES(MiniFSWatcherData.WatchProcess, PsGetCurrentProcessId());
+
+	CONTINUE_IF_MATCHES(MiniFSWatcherData.WatchThread, PsGetCurrentThreadId());
 
 	if (Data->Iopb->MajorFunction == IRP_MJ_SET_INFORMATION && Data->Iopb->Parameters.SetFileInformation.FileInformationClass == FileRenameInformation)
 	{

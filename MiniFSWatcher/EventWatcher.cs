@@ -2,6 +2,7 @@
 using CenterDevice.MiniFSWatcher.Types;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ namespace CenterDevice.MiniFSWatcher
     {
         public readonly DriverVersion Version = new DriverVersion(2,0);
 
+        private const int ALL = 0;
         private const long ERROR_NO_MORE_ITEMS = 259L;
         private const int BUFFER_SIZE = 4096;
         private const string RECYCLE_BIN_PREFIX = "C:\\$RECYCLE.BIN\\";
@@ -44,7 +46,7 @@ namespace CenterDevice.MiniFSWatcher
             }
             else if (driverVersion.Minor != Version.Minor)
             {
-                System.Diagnostics.Trace.TraceWarning("Driver version differs from client version!");
+                Trace.TraceWarning("Driver version differs from client version!");
             }
 
             Task.Factory.StartNew(ForwardEvents, TaskCreationOptions.LongRunning, cancellationTokenSource.Token);
@@ -145,11 +147,33 @@ namespace CenterDevice.MiniFSWatcher
             }
         }
 
-        public void SetExcludeOwnProcess(bool status)
+        public void RemoveProcessFilter()
+        {
+            WatchProcess(ALL);
+        }
+
+        public void NotWatchProcess(long processId)
+        {
+            WatchProcess(-1 * processId);
+        }
+
+        public void WatchProcess(long processId)
         {
             CommandMessage message = new CommandMessage();
-            message.Command = MinispyCommand.SetExcludeProcess;
-            connector.Send(message, BitConverter.GetBytes(Convert.ToInt32(status)));
+            message.Command = MinispyCommand.SetWatchProcess;
+            connector.Send(message, BitConverter.GetBytes(processId));
+        }
+
+        public void NotWatchThread(long threadId)
+        {
+            WatchThread(-1 * threadId);
+        }
+
+        public void WatchThread(long threadId)
+        {
+            CommandMessage message = new CommandMessage();
+            message.Command = MinispyCommand.SetWatchThread;
+            connector.Send(message, BitConverter.GetBytes(threadId));
         }
 
         public void WatchPath(string path)
@@ -174,7 +198,17 @@ namespace CenterDevice.MiniFSWatcher
             Marshal.FreeHGlobal(buffer);
             return driverVersion;
         }
-       
+
+        public static uint GetCurrentThreadId()
+        {
+            return NativeMethods.GetCurrentThreadId();
+        }
+
+        public static int GetCurrentProcessId()
+        {
+            return Process.GetCurrentProcess().Id;
+        }
+
         private List<FileSystemEvent> GetEvents()
         {
             CommandMessage message = new CommandMessage();

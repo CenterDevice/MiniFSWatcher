@@ -63,7 +63,7 @@ namespace CenterDevice.MiniFSWatcherApp
 
             filter.Connect();
             filter.AggregateEvents = true;
-            filter.SetExcludeOwnProcess(true);
+            filter.NotWatchProcess(EventWatcher.GetCurrentProcessId());
         
             filter.WatchPath(path + "*");
 

@@ -146,7 +146,8 @@ typedef enum _MINIFSWATCHER_COMMAND {
 
     GetMiniSpyLog,
     GetMiniSpyVersion,
-	SetExcludeProcess,
+	SetWatchProcess,
+	SetWatchThread,
 	SetPathFilter
 
 } MINIFSWATCHER_COMMAND;
@@ -210,6 +211,17 @@ typedef struct _COMMAND_MESSAGE {
 #ifndef FlagOn
 #define FlagOn(_F,_SF)        ((_F) & (_SF))
 #endif
+
+#define CONTINUE_IF_MATCHES(_expected, _actual) \
+		if (_expected > 0) { \
+			if (((LONGLONG)_actual) != _expected) { \
+				return FLT_PREOP_SUCCESS_NO_CALLBACK; \
+			} \
+		} else if (_expected < 0) {\
+			 if (((LONGLONG)_actual) == -1 * _expected) { \
+				return FLT_PREOP_SUCCESS_NO_CALLBACK; \
+			 } \
+		}
 
 #endif /* __MINISPY_H__ */
 

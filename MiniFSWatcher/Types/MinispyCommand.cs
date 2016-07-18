@@ -4,7 +4,8 @@
     {
         GetMiniSpyLog,
         GetMiniSpyVersion,
-        SetExcludeProcess,
+        SetWatchProcess,
+        SetWatchThread,
         SetPathFilter
     }
 }

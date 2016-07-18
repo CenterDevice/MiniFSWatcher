@@ -4,6 +4,7 @@ using System.IO;
 using CenterDevice.MiniFSWatcher;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Threading;
 
 namespace CenterDevice.MiniFSWatcherTest
 {

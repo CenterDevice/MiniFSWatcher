@@ -29,5 +29,8 @@ namespace CenterDevice.MiniFSWatcher
 
         [DllImport("kernel32.dll")]
         internal static extern int QueryDosDevice(string lpDeviceName, StringBuilder lpTargetPath, int ucchMax);
+
+        [DllImport("kernel32.dll")]
+        internal static extern uint GetCurrentThreadId();
     }
 }

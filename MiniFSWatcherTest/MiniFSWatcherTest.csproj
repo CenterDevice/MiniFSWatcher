@@ -51,7 +51,6 @@
   </Choose>
   <ItemGroup>
     <Compile Include="BasicFileEventTest.cs" />
-    <Compile Include="EventAggregationTest.cs" />
     <Compile Include="FileEventTest.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

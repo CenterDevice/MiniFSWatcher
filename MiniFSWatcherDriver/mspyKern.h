@@ -126,7 +126,9 @@ typedef struct _MINISPY_DATA {
 
     ULONG DebugFlags;
 
-	HANDLE ExcludeProcess;
+	LONGLONG WatchProcess;
+
+	LONGLONG WatchThread;
 
 	UNICODE_STRING WatchPath;
 

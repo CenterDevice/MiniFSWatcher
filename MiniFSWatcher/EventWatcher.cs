@@ -176,6 +176,11 @@ namespace CenterDevice.MiniFSWatcher
             connector.Send(message, BitConverter.GetBytes(threadId));
         }
 
+        public void RemoveThreadFilter()
+        {
+            WatchThread(ALL);
+        }
+
         public void WatchPath(string path)
         {
             CommandMessage message = new CommandMessage();

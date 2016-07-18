@@ -619,16 +619,16 @@ break;
 						break;
 					}
 
-RtlInitUnicodeString(&dataString, (PCWSTR)((PCOMMAND_MESSAGE)InputBuffer)->Data);
-if (SpyUpdateWatchedPath(&dataString))
-{
-	DbgPrintEx(DPFLTR_IHVDRIVER_ID, 0, "Watching path %wZ\n", &MiniFSWatcherData.WatchPath);
-	status = STATUS_SUCCESS;
-}
-else
-{
-	status = STATUS_OPERATION_IN_PROGRESS;
-}
+					RtlInitUnicodeString(&dataString, (PCWSTR)((PCOMMAND_MESSAGE)InputBuffer)->Data);
+					if (SpyUpdateWatchedPath(&dataString))
+					{
+						DbgPrintEx(DPFLTR_IHVDRIVER_ID, 0, "Watching path %wZ\n", &MiniFSWatcherData.WatchPath);
+						status = STATUS_SUCCESS;
+					}
+					else
+					{
+						status = STATUS_OPERATION_IN_PROGRESS;
+					}
 				} except(SpyExceptionFilter(GetExceptionInformation(), TRUE)) {
 					return GetExceptionCode();
 				}
